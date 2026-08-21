@@ -1,0 +1,535 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>¿A dónde emigran los bolivianos? | Dashboard 1990–2024</title>
+  <meta name="description" content="Dashboard interactivo sobre los destinos de la emigración boliviana entre 1990 y 2024 con datos de UN DESA.">
+  <meta name="theme-color" content="#0f8f91">
+
+  <!-- Al publicar en GitHub Pages, reemplazar TU-URL por la URL pública definitiva. -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="¿A dónde emigran los bolivianos?">
+  <meta property="og:description" content="Explora cómo cambió el mapa migratorio boliviano entre 1990 y 2024.">
+  <meta property="og:url" content="https://TU-URL/">
+  <meta property="og:image" content="https://TU-URL/preview-linkedin.png">
+
+  <style>
+    :root{
+      --viz-panel:#f6f8fb;
+      --viz-card:#ffffff;
+      --viz-text:#172033;
+      --viz-muted:#64748b;
+      --viz-border:#dbe3ea;
+      --viz-accent:#0f8f91;
+      --viz-accent-text:#ffffff;
+      --viz-accent-bg-subtle:#dff5f3;
+      --viz-series-2:#315f9d;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      background:var(--viz-panel);
+      color:var(--viz-text);
+    }
+    main{width:min(1180px,calc(100% - 28px));margin:0 auto;padding:34px 0 54px}
+    @media(max-width:560px){main{width:min(100% - 18px,1180px);padding-top:20px}}
+  </style>
+</head>
+<body>
+  <main>
+    
+
+<div id="migration-app" class="migration-app">
+  <section class="hero">
+    <div>
+      <span class="eyebrow">🇧🇴 Bolivia · Migración internacional</span>
+      <h1>¿A dónde emigran los bolivianos?</h1>
+      <p>Explora cómo cambió el mapa de destinos entre 1990 y 2024 a partir del stock internacional de migrantes de origen boliviano.</p>
+    </div>
+    <div class="hero-number">
+      <div id="heroTotal" class="hero-total">783.473</div>
+      <div class="hero-label">emigrantes bolivianos en 2024</div>
+    </div>
+  </section>
+
+  <section class="metrics" aria-live="polite">
+    <article class="metric-card">
+      <span>Total emigrantes</span>
+      <strong id="metricTotal">—</strong>
+      <small id="metricTotalNote">—</small>
+    </article>
+    <article class="metric-card">
+      <span>Principal destino</span>
+      <strong id="metricLeader">—</strong>
+      <small id="metricLeaderNote">—</small>
+    </article>
+    <article class="metric-card">
+      <span>Top 3 concentran</span>
+      <strong id="metricTop3">—</strong>
+      <small>del stock total</small>
+    </article>
+    <article class="metric-card">
+      <span>Crecimiento vs. 1990</span>
+      <strong id="metricGrowth">—</strong>
+      <small id="metricGrowthNote">—</small>
+    </article>
+  </section>
+
+  <section class="controls card">
+    <div class="year-control">
+      <div class="control-label-row">
+        <label for="yearRange">Corte temporal</label>
+        <strong id="yearValue">2024</strong>
+      </div>
+      <input id="yearRange" type="range" min="0" max="7" step="1" value="7" aria-label="Seleccionar corte temporal">
+      <div id="yearTicks" class="ticks"></div>
+    </div>
+
+    <div class="select-control">
+      <label for="countrySelect">Analizar destino</label>
+      <select id="countrySelect"></select>
+    </div>
+
+    <button id="playButton" class="play-button" type="button">▶ Reproducir 1990 → 2024</button>
+  </section>
+
+  <section class="main-grid">
+    <div class="map-panel">
+      <div class="section-heading">
+        <div>
+          <h2>Mapa de destinos</h2>
+          <p>El grosor de cada ruta representa el stock de emigrantes en el corte seleccionado.</p>
+        </div>
+        <span id="mapYearBadge" class="badge">2024</span>
+      </div>
+      <div id="mapStatus" class="map-status">Cargando mapa mundial…</div>
+      <svg id="worldMap" viewBox="0 0 900 480" role="img" aria-label="Mapa mundial con flujos migratorios desde Bolivia"></svg>
+      <div class="map-legend">
+        <span><i class="legend-origin"></i> Bolivia</span>
+        <span><i class="legend-flow"></i> Ruta migratoria</span>
+        <span>Se muestran los 10 principales destinos del año.</span>
+      </div>
+    </div>
+
+    <div class="ranking-panel">
+      <div class="section-heading">
+        <div>
+          <h2>Ranking de destinos</h2>
+          <p id="rankingSub">Top 10 · stock migratorio</p>
+        </div>
+      </div>
+      <div id="rankingList" class="ranking-list"></div>
+    </div>
+  </section>
+
+  <section class="trend-section">
+    <div class="section-heading">
+      <div>
+        <h2 id="trendTitle">Evolución de Argentina</h2>
+        <p>Stock y participación sobre el total de emigrantes bolivianos.</p>
+      </div>
+      <span id="trendBadge" class="badge">#1 en 2024</span>
+    </div>
+    <svg id="trendChart" viewBox="0 0 900 330" role="img" aria-label="Evolución histórica del destino seleccionado"></svg>
+    <p id="trendSummary" class="trend-summary"></p>
+  </section>
+
+  <section class="story-grid">
+    <article class="story-card">
+      <span class="story-kicker">1990–2000</span>
+      <h3>La era argentina</h3>
+      <p>Argentina concentraba cerca de 8 de cada 10 emigrantes bolivianos.</p>
+    </article>
+    <article class="story-card">
+      <span class="story-kicker">2000–2010</span>
+      <h3>El auge de España</h3>
+      <p>España pasó del 4,0 % al 32,2 % y se consolidó como segundo destino.</p>
+    </article>
+    <article class="story-card">
+      <span class="story-kicker">2010–2024</span>
+      <h3>El ascenso de Chile</h3>
+      <p>Chile pasó del 3,6 % al 19,2 % y se convirtió en el tercer destino.</p>
+    </article>
+  </section>
+
+  <section class="insight">
+    <strong id="dynamicInsight">Argentina sigue siendo #1, pero el mapa migratorio se volvió mucho más diverso.</strong>
+    <span id="dynamicInsightText"></span>
+  </section>
+
+  <footer class="source">
+    <strong>Fuente:</strong> UN DESA · <em>International Migrant Stock 2024: Destination and origin</em>.
+    <br>
+    <strong>Nota metodológica:</strong> stock migratorio a mitad de año, no flujo anual. Los cortes observados son 1990, 1995, 2000, 2005, 2010, 2015, 2020 y 2024.
+  </footer>
+</div>
+
+<style>
+  .migration-app{
+    --c-bg: var(--viz-panel,#f6f8fb);
+    --c-card: var(--viz-card,#ffffff);
+    --c-text: var(--viz-text,#172033);
+    --c-muted: var(--viz-muted,#64748b);
+    --c-border: var(--viz-border,#dbe3ea);
+    --c-accent: var(--viz-accent,#0f8f91);
+    --c-accent-text: var(--viz-accent-text,#ffffff);
+    --c-accent-soft: var(--viz-accent-bg-subtle,#dff5f3);
+    --c-series2: var(--viz-series-2,#315f9d);
+    width:100%;
+    color:var(--c-text);
+    display:grid;
+    gap:20px;
+  }
+  .migration-app *{box-sizing:border-box}
+  .hero{
+    display:grid;
+    grid-template-columns:minmax(0,1.5fr) minmax(190px,.55fr);
+    gap:20px;
+    align-items:center;
+    padding:8px 0 2px;
+  }
+  .eyebrow{
+    display:inline-flex;
+    padding:6px 10px;
+    border-radius:999px;
+    background:var(--c-accent-soft);
+    color:var(--c-accent);
+    font-size:14px;
+    font-weight:700;
+  }
+  .hero h1{font-size:clamp(32px,5vw,52px);line-height:1.02;margin:12px 0 10px;letter-spacing:-.03em}
+  .hero p{margin:0;color:var(--c-muted);font-size:17px;line-height:1.5;max-width:720px}
+  .hero-number{background:var(--c-card);border:1px solid var(--c-border);border-radius:20px;padding:20px}
+  .hero-total{font-size:clamp(38px,6vw,62px);line-height:1;font-weight:800;color:var(--c-accent);letter-spacing:-.03em}
+  .hero-label{margin-top:8px;color:var(--c-muted);font-size:14px}
+  .metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  .metric-card{background:var(--c-card);border:1px solid var(--c-border);border-radius:16px;padding:15px}
+  .metric-card span,.metric-card small{display:block;color:var(--c-muted);font-size:13px}
+  .metric-card strong{display:block;font-size:25px;margin:4px 0 1px}
+  .card{background:var(--c-card);border:1px solid var(--c-border);border-radius:18px;padding:16px}
+  .controls{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(170px,.7fr) auto;gap:16px;align-items:end}
+  .controls label{display:block;font-size:14px;font-weight:700;margin-bottom:7px}
+  .control-label-row{display:flex;justify-content:space-between;align-items:center}
+  .year-control input{width:100%;accent-color:var(--c-accent)}
+  .ticks{display:flex;justify-content:space-between;font-size:11px;color:var(--c-muted);margin-top:4px}
+  .select-control select{width:100%;border:1px solid var(--c-border);border-radius:12px;padding:10px 12px;background:var(--c-card);color:var(--c-text)}
+  .play-button{border:0;border-radius:12px;background:var(--c-accent);color:var(--c-accent-text);padding:11px 14px;font-weight:700;cursor:pointer}
+  .play-button.secondary{background:var(--c-accent-soft);color:var(--c-accent)}
+  .main-grid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(280px,.65fr);gap:22px;align-items:start}
+  .map-panel,.ranking-panel,.trend-section{min-width:0}
+  .section-heading{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:8px}
+  .section-heading h2{font-size:20px;margin:0 0 3px}
+  .section-heading p{font-size:13px;color:var(--c-muted);margin:0}
+  .badge{white-space:nowrap;background:var(--c-accent-soft);color:var(--c-accent);font-size:12px;font-weight:700;padding:5px 8px;border-radius:999px}
+  #worldMap,#trendChart{width:100%;height:auto;display:block}
+  .map-status{font-size:13px;color:var(--c-muted);padding:12px 0}
+  .map-legend{display:flex;gap:14px;flex-wrap:wrap;color:var(--c-muted);font-size:12px;margin-top:4px}
+  .map-legend i{display:inline-block;vertical-align:middle;margin-right:5px}
+  .legend-origin{width:10px;height:10px;border-radius:50%;background:var(--c-accent)}
+  .legend-flow{width:22px;border-top:3px solid var(--c-accent)}
+  .ranking-list{display:grid;gap:8px}
+  .rank-row{display:grid;grid-template-columns:28px minmax(78px,120px) 1fr 75px;gap:7px;align-items:center;font-size:12px}
+  .rank-row.top{font-weight:800}
+  .rank-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .rank-track{height:10px;background:var(--c-accent-soft);border-radius:999px;overflow:hidden}
+  .rank-fill{height:100%;border-radius:999px;background:var(--c-series2);opacity:.72}
+  .rank-row.top .rank-fill{background:var(--c-accent);opacity:1}
+  .rank-value{text-align:right}
+  .trend-section{padding-top:4px}
+  .trend-summary{font-size:13px;color:var(--c-muted);margin:6px 0 0}
+  .story-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .story-card{border:1px solid var(--c-border);border-radius:16px;padding:15px;background:var(--c-card)}
+  .story-card h3{font-size:17px;margin:5px 0 6px}
+  .story-card p{font-size:13px;color:var(--c-muted);margin:0;line-height:1.45}
+  .story-kicker{font-size:12px;font-weight:700;color:var(--c-accent);background:var(--c-accent-soft);border-radius:999px;padding:4px 7px}
+  .insight{border-left:4px solid var(--c-accent);background:var(--c-accent-soft);border-radius:12px;padding:15px;line-height:1.5}
+  .insight strong{display:block}
+  .insight span{font-size:13px;color:var(--c-muted)}
+  .source{border-top:1px solid var(--c-border);padding-top:14px;color:var(--c-muted);font-size:12px;line-height:1.5}
+  .country-shape{fill:var(--c-accent-soft);stroke:var(--c-border);stroke-width:.45}
+  .country-shape.dest{fill:color-mix(in srgb,var(--c-accent) 18%,var(--c-card))}
+  .country-shape.origin{fill:var(--c-accent)}
+  .route{fill:none;stroke:var(--c-accent);stroke-linecap:round;opacity:.58}
+  .route.top-route{opacity:.9}
+  .dest-dot{fill:var(--c-accent);stroke:var(--c-card);stroke-width:1.5}
+  .map-label{fill:var(--c-text);font-size:10px;font-weight:700}
+  .axis-line{stroke:var(--c-border);stroke-width:1}
+  .grid-line{stroke:var(--c-border);stroke-width:1;opacity:.65}
+  .trend-line{fill:none;stroke:var(--c-accent);stroke-width:3}
+  .share-line{fill:none;stroke:var(--c-series2);stroke-width:2;stroke-dasharray:5 4}
+  .trend-dot{fill:var(--c-accent)}
+  .share-dot{fill:var(--c-series2)}
+  .chart-label{fill:var(--c-muted);font-size:10px}
+  .chart-value{fill:var(--c-text);font-size:11px;font-weight:700}
+  @media(max-width:760px){
+    .hero,.main-grid,.controls{grid-template-columns:1fr}
+    .metrics{grid-template-columns:repeat(2,1fr)}
+    .story-grid{grid-template-columns:1fr}
+    .hero-number{max-width:360px}
+  }
+  @media(max-width:430px){
+    .metrics{grid-template-columns:1fr 1fr}
+    .rank-row{grid-template-columns:24px 86px 1fr 66px}
+  }
+</style>
+
+<script type="module">
+  const DB = {"years":[1990,1995,2000,2005,2010,2015,2020,2024],"totals":[199843,236253,281557,456266,648912,646591,744014,783473],"countries":{"Argentina":{"m49":32,"stock":[161850,190118,223303,273555,340770,342431,339423,337017],"share":[80.988576,80.472206,79.310051,59.955158,52.514054,52.959444,45.620513,43.015777],"rank":[1,1,1,1,1,1,1,1]},"Australia":{"m49":36,"stock":[534,608,694,770,863,1058,1125,1196],"share":[0.26721,0.257351,0.246487,0.168761,0.132992,0.163627,0.151207,0.152654],"rank":[11,11,11,12,12,11,12,12]},"Brasil":{"m49":76,"stock":[15043,17195,20064,27993,37619,47979,56480,46373],"share":[7.527409,7.278214,7.126088,6.135237,5.797242,7.420301,7.591255,5.918902],"rank":[2,2,2,3,3,4,4,4]},"Bulgaria":{"m49":100,"stock":[1,6,10,16,20,16,22,30],"share":[0.0005,0.00254,0.003552,0.003507,0.003082,0.002475,0.002957,0.003829],"rank":[32,31,31,30,31,31,31,29]},"Canadá":{"m49":124,"stock":[1544,1854,2199,3579,4974,5552,4080,4219],"share":[0.772606,0.784752,0.781014,0.784411,0.766514,0.858657,0.548377,0.5385],"rank":[7,7,7,7,8,7,8,8]},"Chile":{"m49":152,"stock":[6803,8138,10099,13226,23413,52293,119938,150155],"share":[3.404172,3.444612,3.58684,2.898748,3.608039,8.087493,16.120396,19.165306],"rank":[3,3,4,4,4,3,3,3]},"Chipre":{"m49":196,"stock":[3,4,5,7,10,9,8,8],"share":[0.001501,0.001693,0.001776,0.001534,0.001541,0.001392,0.001075,0.001021],"rank":[31,32,32,33,34,35,36,36]},"Colombia":{"m49":170,"stock":[301,422,524,651,794,959,1134,1267],"share":[0.150618,0.178622,0.186108,0.14268,0.122359,0.148316,0.152416,0.161716],"rank":[14,13,13,14,14,13,11,11]},"Costa Rica":{"m49":188,"stock":[269,220,282,186,365,369,442,533],"share":[0.134606,0.093121,0.100157,0.040766,0.056248,0.057069,0.059407,0.06803],"rank":[15,15,15,19,18,18,18,17]},"Croacia":{"m49":191,"stock":[0,0,0,16,32,32,29,28],"share":[0.0,0.0,0.0,0.003507,0.004931,0.004949,0.003898,0.003574],"rank":[34,35,34,31,29,29,29,30]},"Cuba":{"m49":192,"stock":[128,97,55,57,56,52,46,33],"share":[0.06405,0.041058,0.019534,0.012493,0.00863,0.008042,0.006183,0.004212],"rank":[17,20,22,25,27,27,28,28]},"Dinamarca":{"m49":208,"stock":[60,93,164,306,423,457,472,515],"share":[0.030024,0.039365,0.058248,0.067066,0.065186,0.070678,0.06344,0.065733],"rank":[23,21,18,16,16,16,17,18]},"Ecuador":{"m49":218,"stock":[392,495,601,703,831,913,1021,1091],"share":[0.196154,0.209521,0.213456,0.154077,0.128061,0.141202,0.137229,0.139252],"rank":[12,12,12,13,13,14,14,14]},"El Salvador":{"m49":222,"stock":[73,59,44,48,51,53,53,54],"share":[0.036529,0.024973,0.015627,0.01052,0.007859,0.008197,0.007124,0.006892],"rank":[21,23,25,28,28,26,27,27]},"Eslovaquia":{"m49":703,"stock":[0,1,2,2,2,15,16,17],"share":[0.0,0.000423,0.00071,0.000438,0.000308,0.00232,0.00215,0.00217],"rank":[35,33,33,34,35,32,33,34]},"Eslovenia":{"m49":705,"stock":[0,0,0,0,16,11,13,15],"share":[0.0,0.0,0.0,0.0,0.002466,0.001701,0.001747,0.001915],"rank":[36,36,35,35,32,34,35,35]},"España":{"m49":724,"stock":[3511,6345,11247,115401,208719,156578,175328,188863],"share":[1.756879,2.68568,3.994573,25.292483,32.164454,24.215926,23.565148,24.105872],"rank":[4,4,3,2,2,2,2,2]},"Estonia":{"m49":233,"stock":[0,0,0,0,1,2,5,5],"share":[0.0,0.0,0.0,0.0,0.000154,0.000309,0.000672,0.000638],"rank":[37,37,36,36,36,38,37,37]},"Finlandia":{"m49":246,"stock":[24,34,44,89,124,138,166,195],"share":[0.012009,0.014391,0.015627,0.019506,0.019109,0.021343,0.022311,0.024889],"rank":[25,25,26,24,21,22,21,20]},"Grecia":{"m49":300,"stock":[9,13,18,21,24,22,21,22],"share":[0.004504,0.005503,0.006393,0.004603,0.003698,0.003402,0.002823,0.002808],"rank":[29,28,28,29,30,30,32,32]},"Guatemala":{"m49":320,"stock":[67,77,86,102,118,130,145,159],"share":[0.033526,0.032592,0.030544,0.022355,0.018184,0.020105,0.019489,0.020294],"rank":[22,22,21,22,22,23,23,22]},"Guinea":{"m49":324,"stock":[0,0,0,0,0,5,3,3],"share":[0.0,0.0,0.0,0.0,0.0,0.000773,0.000403,0.000383],"rank":[38,38,37,37,38,36,38,38]},"Honduras":{"m49":340,"stock":[112,111,110,108,105,147,149,152],"share":[0.056044,0.046984,0.039068,0.02367,0.016181,0.022735,0.020027,0.019401],"rank":[19,19,20,21,23,21,22,23]},"Hungría":{"m49":348,"stock":[14,27,40,49,57,46,55,65],"share":[0.007005,0.011428,0.014207,0.010739,0.008784,0.007114,0.007392,0.008296],"rank":[27,27,27,27,26,28,26,26]},"Islandia":{"m49":352,"stock":[6,9,11,12,12,14,15,23],"share":[0.003002,0.003809,0.003907,0.00263,0.001849,0.002165,0.002016,0.002936],"rank":[30,30,30,32,33,33,34,31]},"Italia":{"m49":380,"stock":[830,1389,2248,6225,11593,14404,14838,14942],"share":[0.415326,0.587929,0.798417,1.364336,1.786529,2.227683,1.994317,1.907149],"rank":[9,8,6,5,5,5,6,6]},"Japón":{"m49":392,"stock":[3436,3822,4199,4568,5022,5417,6154,6454],"share":[1.71935,1.617757,1.49135,1.00117,0.773911,0.837778,0.827135,0.823768],"rank":[5,5,5,6,7,8,7,7]},"Letonia":{"m49":428,"stock":[0,0,0,0,0,0,1,1],"share":[0.0,0.0,0.0,0.0,0.0,0.0,0.000134,0.000128],"rank":[39,39,38,38,39,40,39,39]},"Liechtenstein":{"m49":438,"stock":[0,0,0,0,1,1,0,0],"share":[0.0,0.0,0.0,0.0,0.000154,0.000155,0.0,0.0],"rank":[40,40,39,39,37,39,41,41]},"Lituania":{"m49":440,"stock":[1,1,0,0,0,3,1,1],"share":[0.0005,0.000423,0.0,0.0,0.0,0.000464,0.000134,0.000128],"rank":[33,34,40,40,40,37,40,40]},"Luxemburgo":{"m49":442,"stock":[0,0,0,0,0,0,70,81],"share":[0.0,0.0,0.0,0.0,0.0,0.0,0.009408,0.010339],"rank":[41,41,41,41,41,41,24,24]},"México":{"m49":484,"stock":[923,1143,1401,1668,1983,2242,2531,2805],"share":[0.461863,0.483803,0.49759,0.365576,0.305588,0.346742,0.340182,0.358021],"rank":[8,9,9,10,9,9,9,9]},"Nicaragua":{"m49":558,"stock":[47,38,46,57,60,64,66,68],"share":[0.023518,0.016084,0.016338,0.012493,0.009246,0.009898,0.008871,0.008679],"rank":[24,24,24,26,24,24,25,25]},"Noruega":{"m49":578,"stock":[117,171,263,335,424,535,583,648],"share":[0.058546,0.07238,0.093409,0.073422,0.06534,0.082742,0.078359,0.082709],"rank":[18,17,16,15,15,15,15,16]},"Panamá":{"m49":591,"stock":[213,194,189,261,388,454,543,828],"share":[0.106584,0.082115,0.067127,0.057203,0.059792,0.070214,0.072982,0.105683],"rank":[16,16,17,18,17,17,16,15]},"Paraguay":{"m49":600,"stock":[809,976,1140,1086,1034,1009,1092,1165],"share":[0.404818,0.413116,0.404891,0.238019,0.159344,0.156049,0.146771,0.148697],"rank":[10,10,10,11,11,12,13,13]},"Perú":{"m49":604,"stock":[12,12,15,2775,6689,10775,15651,22190],"share":[0.006005,0.005079,0.005328,0.608198,1.030802,1.666432,2.103589,2.832261],"rank":[28,29,29,8,6,6,5,5]},"Portugal":{"m49":620,"stock":[15,32,51,130,188,213,242,272],"share":[0.007506,0.013545,0.018114,0.028492,0.028972,0.032942,0.032526,0.034717],"rank":[26,26,23,20,19,19,19,19]},"Puerto Rico":{"m49":630,"stock":[109,115,122,96,58,56,24,22],"share":[0.054543,0.048677,0.04333,0.02104,0.008938,0.008661,0.003226,0.002808],"rank":[20,18,19,23,25,25,30,33]},"República Dominicana":{"m49":214,"stock":[363,403,443,304,163,170,176,190],"share":[0.181643,0.17058,0.157339,0.066628,0.025119,0.026292,0.023655,0.024251],"rank":[13,14,14,17,20,20,20,21]},"Venezuela":{"m49":862,"stock":[2224,2031,1838,1864,1910,1967,1853,1768],"share":[1.112874,0.859672,0.652799,0.408534,0.294339,0.304211,0.249054,0.225662],"rank":[6,6,8,9,10,10,10,10]}}};
+  const YEARS = DB.years;
+  const TOTALS = DB.totals;
+  const COUNTRIES = Object.keys(DB.countries).sort((a,b)=>a.localeCompare(b,"es"));
+  const SOURCE_M49 = 68;
+
+  const fmtInt = n => Math.round(n).toLocaleString("es-BO");
+  const fmt1 = n => Number(n).toLocaleString("es-BO",{minimumFractionDigits:1,maximumFractionDigits:1});
+  const yi = year => YEARS.indexOf(Number(year));
+
+  function rowsAt(year){
+    const i=yi(year);
+    return COUNTRIES.map(country=>({
+      year,
+      country,
+      m49: DB.countries[country].m49,
+      stock: DB.countries[country].stock[i],
+      total: TOTALS[i],
+      share: DB.countries[country].share[i],
+      rank: DB.countries[country].rank[i]
+    })).sort((a,b)=>a.rank-b.rank);
+  }
+  function leaderAt(year){return rowsAt(year)[0]}
+  function rowFor(country,year){
+    const i=yi(year), c=DB.countries[country];
+    return {year,country,m49:c.m49,stock:c.stock[i],total:TOTALS[i],share:c.share[i],rank:c.rank[i]};
+  }
+
+  const yearRange = document.getElementById("yearRange");
+  const yearValue = document.getElementById("yearValue");
+  const yearTicks = document.getElementById("yearTicks");
+  const countrySelect = document.getElementById("countrySelect");
+  const playButton = document.getElementById("playButton");
+
+  YEARS.forEach(y=>{
+    const s=document.createElement("span"); s.textContent=y; yearTicks.appendChild(s);
+  });
+  COUNTRIES.forEach(c=>{
+    const o=document.createElement("option");o.value=c;o.textContent=c;
+    if(c==="Argentina")o.selected=true;
+    countrySelect.appendChild(o);
+  });
+
+  let playing=false, timer=null;
+  let mapState=null;
+
+  function currentYear(){return YEARS[Number(yearRange.value)]}
+
+  function updateMetrics(year){
+    const rows=rowsAt(year), total=rows[0].total, leader=rows[0];
+    const top3=rows.slice(0,3).reduce((s,d)=>s+d.share,0);
+    const total1990=rowsAt(1990)[0].total;
+    const growth=(total/total1990-1)*100;
+
+    document.getElementById("heroTotal").textContent=fmtInt(total);
+    document.getElementById("heroTotal").nextElementSibling.textContent=`emigrantes bolivianos en ${year}`;
+    document.getElementById("metricTotal").textContent=fmtInt(total);
+    document.getElementById("metricTotalNote").textContent=`corte ${year}`;
+    document.getElementById("metricLeader").textContent=leader.country;
+    document.getElementById("metricLeaderNote").textContent=`${fmt1(leader.share)} % · ${fmtInt(leader.stock)}`;
+    document.getElementById("metricTop3").textContent=fmt1(top3)+" %";
+    document.getElementById("metricGrowth").textContent=(growth>=0?"+":"")+fmt1(growth)+" %";
+    document.getElementById("metricGrowthNote").textContent=`vs. ${fmtInt(total1990)} en 1990`;
+  }
+
+  function updateRanking(year){
+    const rows=rowsAt(year).slice(0,10);
+    const max=rows[0].stock;
+    const list=document.getElementById("rankingList");
+    list.innerHTML="";
+    rows.forEach((d,i)=>{
+      const el=document.createElement("div");
+      el.className="rank-row"+(i===0?" top":"");
+      el.innerHTML=`
+        <span>${d.rank}</span>
+        <span class="rank-name">${d.country}</span>
+        <span class="rank-track"><span class="rank-fill" style="display:block;width:${(d.stock/max*100).toFixed(1)}%"></span></span>
+        <span class="rank-value">${fmtInt(d.stock)}</span>`;
+      list.appendChild(el);
+    });
+    document.getElementById("rankingSub").textContent=`Top 10 · stock migratorio · ${year}`;
+  }
+
+  function drawTrend(country){
+    const series=YEARS.map(y=>rowFor(country,y)).filter(Boolean);
+    const svg=document.getElementById("trendChart");
+    const W=900,H=330,m={l:58,r:65,t:24,b:42};
+    const maxStock=Math.max(...series.map(d=>d.stock))*1.08;
+    const maxShare=Math.max(...series.map(d=>d.share))*1.12;
+    const x=i=>m.l+i*(W-m.l-m.r)/(YEARS.length-1);
+    const ys=v=>H-m.b-(v/maxStock)*(H-m.t-m.b);
+    const yp=v=>H-m.b-(v/maxShare)*(H-m.t-m.b);
+
+    let out="";
+    [0,.25,.5,.75,1].forEach(f=>{
+      const yy=m.t+f*(H-m.t-m.b);
+      out+=`<line class="grid-line" x1="${m.l}" y1="${yy}" x2="${W-m.r}" y2="${yy}"/>`;
+      const stockVal=maxStock*(1-f);
+      out+=`<text class="chart-label" x="${m.l-8}" y="${yy+4}" text-anchor="end">${fmtInt(stockVal)}</text>`;
+    });
+    YEARS.forEach((yr,i)=>{
+      out+=`<text class="chart-label" x="${x(i)}" y="${H-14}" text-anchor="middle">${yr}</text>`;
+    });
+
+    const stockPath=series.map((d,i)=>(i?"L":"M")+x(i).toFixed(1)+","+ys(d.stock).toFixed(1)).join(" ");
+    const sharePath=series.map((d,i)=>(i?"L":"M")+x(i).toFixed(1)+","+yp(d.share).toFixed(1)).join(" ");
+    out+=`<path class="trend-line" d="${stockPath}"/>`;
+    out+=`<path class="share-line" d="${sharePath}"/>`;
+
+    series.forEach((d,i)=>{
+      out+=`<circle class="trend-dot" cx="${x(i)}" cy="${ys(d.stock)}" r="4"/>`;
+      out+=`<circle class="share-dot" cx="${x(i)}" cy="${yp(d.share)}" r="3"/>`;
+    });
+    const last=series[series.length-1], li=series.length-1;
+    out+=`<text class="chart-value" x="${x(li)-5}" y="${Math.max(12,ys(last.stock)-10)}" text-anchor="end">${fmtInt(last.stock)}</text>`;
+    out+=`<text class="chart-value" x="${W-m.r+8}" y="${yp(last.share)+4}">${fmt1(last.share)} %</text>`;
+    out+=`<text class="chart-label" x="${W-m.r+8}" y="${m.t+10}">participación</text>`;
+    svg.innerHTML=out;
+
+    document.getElementById("trendTitle").textContent=`Evolución de ${country}`;
+    const latest=rowFor(country,2024), first=rowFor(country,1990);
+    document.getElementById("trendBadge").textContent=`#${latest.rank} en 2024`;
+    document.getElementById("trendSummary").textContent=
+      `${country}: ${fmtInt(first.stock)} emigrantes (${fmt1(first.share)} %) en 1990 → ${fmtInt(latest.stock)} (${fmt1(latest.share)} %) en 2024.`;
+  }
+
+  function updateInsight(year){
+    const rows=rowsAt(year);
+    const leader=rows[0], second=rows[1], third=rows[2];
+    const top3=rows.slice(0,3).reduce((s,d)=>s+d.share,0);
+    const title=document.getElementById("dynamicInsight");
+    const text=document.getElementById("dynamicInsightText");
+
+    if(year===1990){
+      title.textContent="En 1990, Argentina concentraba 81,0 % de toda la emigración boliviana.";
+      text.textContent="El mapa estaba fuertemente concentrado en un solo destino.";
+    }else if(year<=2000){
+      title.textContent=`Argentina continúa dominando el mapa en ${year}.`;
+      text.textContent=`Los tres primeros destinos concentran ${fmt1(top3)} % del total.`;
+    }else if(year<=2010){
+      title.textContent=`España irrumpe como la gran segunda ruta migratoria en ${year}.`;
+      text.textContent=`${leader.country} sigue #1; ${second.country} alcanza ${fmt1(second.share)} % del total.`;
+    }else{
+      title.textContent=`Argentina sigue #1, pero España y Chile redibujan el mapa en ${year}.`;
+      text.textContent=`Top 3: ${leader.country}, ${second.country} y ${third.country}; juntos concentran ${fmt1(top3)} % del total.`;
+    }
+  }
+
+  function updateAll(){
+    const year=currentYear();
+    yearValue.textContent=year;
+    document.getElementById("mapYearBadge").textContent=year;
+    updateMetrics(year);
+    updateRanking(year);
+    updateInsight(year);
+    if(mapState) drawMap(year);
+    drawTrend(countrySelect.value);
+  }
+
+  function stopPlay(){
+    playing=false;
+    if(timer) clearInterval(timer);
+    timer=null;
+    playButton.textContent="▶ Reproducir 1990 → 2024";
+    playButton.classList.remove("secondary");
+  }
+
+  playButton.addEventListener("click",()=>{
+    if(playing){stopPlay();return}
+    playing=true;
+    playButton.textContent="■ Detener";
+    playButton.classList.add("secondary");
+    if(Number(yearRange.value)>=YEARS.length-1)yearRange.value=0;
+    updateAll();
+    timer=setInterval(()=>{
+      let i=Number(yearRange.value)+1;
+      if(i>=YEARS.length){stopPlay();return}
+      yearRange.value=i;
+      updateAll();
+    },900);
+  });
+  yearRange.addEventListener("input",()=>{if(playing)stopPlay();updateAll()});
+  countrySelect.addEventListener("change",()=>drawTrend(countrySelect.value));
+
+  async function initMap(){
+    const status=document.getElementById("mapStatus");
+    try{
+      const d3=await import("https://cdn.jsdelivr.net/npm/d3@7.9.0/+esm");
+      const topo=await import("https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/+esm");
+      const worldMod=await import("https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-110m.json/+esm");
+      const world=worldMod.default || worldMod;
+      const countries=topo.feature(world,world.objects.countries);
+      const svg=document.getElementById("worldMap");
+      const projection=d3.geoNaturalEarth1().fitExtent([[8,8],[892,472]],countries);
+      const path=d3.geoPath(projection);
+      const byId=new Map(countries.features.map(f=>[Number(f.id),f]));
+      const originFeature=byId.get(SOURCE_M49);
+      mapState={d3,countries,svg,projection,path,byId,originFeature};
+      status.style.display="none";
+      drawMap(currentYear());
+    }catch(e){
+      status.textContent="No se pudo cargar el mapa mundial. El ranking y las demás visualizaciones siguen disponibles.";
+    }
+  }
+
+  function drawMap(year){
+    const {d3,countries,svg,projection,path,byId,originFeature}=mapState;
+    const rows=rowsAt(year).slice(0,10);
+    const max=rows[0].stock;
+    const originCentroid=projection(d3.geoCentroid(originFeature));
+    let out="";
+
+    countries.features.forEach(f=>{
+      const id=Number(f.id);
+      const isOrigin=id===SOURCE_M49;
+      const isDest=rows.some(r=>r.m49===id);
+      out+=`<path class="country-shape${isOrigin?" origin":isDest?" dest":""}" d="${path(f)}"/>`;
+    });
+
+    rows.slice().reverse().forEach((r,reverseIndex)=>{
+      const feat=byId.get(r.m49);
+      if(!feat)return;
+      const dest=projection(d3.geoCentroid(feat));
+      if(!dest || !originCentroid)return;
+      const [x1,y1]=originCentroid,[x2,y2]=dest;
+      const dx=x2-x1,dy=y2-y1;
+      const dist=Math.sqrt(dx*dx+dy*dy);
+      const bend=Math.min(85,dist*.22);
+      const mx=(x1+x2)/2;
+      const my=(y1+y2)/2-bend;
+      const width=1.2+7*Math.sqrt(r.stock/max);
+      out+=`<path class="route${r.rank<=3?" top-route":""}" d="M${x1},${y1} Q${mx},${my} ${x2},${y2}" stroke-width="${width.toFixed(1)}"/>`;
+    });
+
+    rows.slice(0,7).forEach(r=>{
+      const feat=byId.get(r.m49); if(!feat)return;
+      const dest=projection(d3.geoCentroid(feat)); if(!dest)return;
+      const [x,y]=dest;
+      out+=`<circle class="dest-dot" cx="${x}" cy="${y}" r="${r.rank<=3?5:3.5}"/>`;
+      if(r.rank<=5){
+        const anchor=x>700?"end":"start";
+        const tx=x+(anchor==="end"?-7:7);
+        out+=`<text class="map-label" x="${tx}" y="${y-7}" text-anchor="${anchor}">${r.rank}. ${r.country}</text>`;
+      }
+    });
+    out+=`<circle cx="${originCentroid[0]}" cy="${originCentroid[1]}" r="6.5" fill="var(--c-accent)" stroke="var(--c-card)" stroke-width="2"/>`;
+    out+=`<text class="map-label" x="${originCentroid[0]+9}" y="${originCentroid[1]+4}">Bolivia</text>`;
+    svg.innerHTML=out;
+  }
+
+  updateAll();
+  initMap();
+</script>
+
+  </main>
+</body>
+</html>
